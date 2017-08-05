@@ -4,6 +4,8 @@ library(XML)
 library(dplyr)
 library(httr)
 library(rvest)
+library(imager)
+
 
 # <워킹디렉토리 설정>-----
 setwd("C:/Users/Administrator/DSS/R/Img/DataSet")
@@ -13,6 +15,8 @@ setwd("C:/Users/Administrator/DSS/R/Img/DataSet")
 keyword = "bikini"
 URL_g = paste0("https://www.google.co.uk/search?q=", keyword, "&newwindow=1&tbs=isz:ex,iszw:200,iszh:200,itp:photo&tbm=isch")
 URL_i = paste0("https://www.instagram.com/explore/tags/", keyword, "/")
+URL_f = paste0("https://kr.fotolia.com/search?k=bikini&filters%5Bcontent_type%3Aphoto%5D=1&filters%5Bhas_releases%5D=true&search-submit=%EA%B2%80%EC%83%89+&offset=0")
+modify_url(URL_f, query = list("search?k"=keyword))
 
 
 # <유저 에이전트 설정>-----
@@ -49,6 +53,12 @@ bikini = readLines("bikini-2.txt")
 bikini = readLines("bikini-3.txt")
 attr_manual = regmatches(bikini, regexpr("(http).+?(\\.jpg)", bikini))
 
+# <페이지 파싱-4-fotolia>-----
+bikini = read_html(URL_f)%>%
+         html_nodes("img")%>%
+         regmatches(regexpr("(http).+?(\\.jpg)", .))
+bikini
+
 
 # <이미지 다운로드-1>-----
 for(i in 1:length(attrs))
@@ -73,9 +83,35 @@ for(i in 1:length(attr_manual))
   download.file(attr_manual[i], sprintf("a_img_02_%.3d.jpg", i), mode = "wb")
 }
 
+# <이미지 다운로드-3>-----
+fotolia=c()
+setwd("C:/Users/Administrator/DSS/R/Img/DataSet/fotolia")
+
+for(i in 1:247)
+{
+  sprintf("page_%d", i)%>%
+    print()
+  page = (i*100)-100
+  fotolia = modify_url(URL_f, query = list("search?k"=keyword, 
+                                           offset=page))%>%
+            GET(config=ua)%>%
+            read_html(URL_f)%>%
+            html_nodes("img")%>%
+            regmatches(regexpr("(http).+?(\\.jpg)", .))
+  
+  for(j in 1:length(fotolia))
+  {
+    download.file(fotolia[j], sprintf("a_image_%03d_%06d.jpg", i, j), mode = "wb", quiet = T)
+    sprintf("photo_%d", j)%>%
+      print()
+  }
+}
+#setInternet2(use=FALSE)
+
 setwd("C:/Users/Administrator/DSS/R/Img/DataSet/sex")
 for(i in 1:length(attr_manual))
 {
   print(i)
   download.file(attr_manual[i], sprintf("img_11_%.3d.jpg", i), mode = "wb")
 }
+
