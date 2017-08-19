@@ -8,13 +8,14 @@ library(stringr)
 library(pscl)
 
 ## 워킹디렉토리 설정
-setwd("C:/Users/Administrator/DSS/R/Freeze/DataSet")
+# setwd("C:/Users/Administrator/DSS/R/Freeze/DataSet")
+setwd("C:/Users/a/DSS/R/Freeze/DataSet")
 
 ## 데이터 로드
-original_1 = read.csv("01_파주_민원현황(2010년~현재).csv", stringsAsFactors = F)
-original_2 = read.csv("02_파주-수도미터.csv", stringsAsFactors = F)
-original_3 = read.csv("03_수도미터위치정보+매칭.csv", stringsAsFactors = F)
-original_4 = read.csv("04_파주-급수관로.csv", stringsAsFactors = F)
+original_1 = read.csv("01_파주_민원현황(2010년-현재).csv", stringsAsFactors = F)
+original_2 = read.csv("02_파주_수도미터.csv", stringsAsFactors = F)
+original_3 = read.csv("03_수도미터위치정보_매칭.csv", stringsAsFactors = F)
+original_4 = read.csv("04_파주_급수관로.csv", stringsAsFactors = F)
 
 weather_10 = read.csv("2010_파주_기온.csv", stringsAsFactors = F)
 weather_11 = read.csv("2011_파주_기온.csv", stringsAsFactors = F)
@@ -24,6 +25,9 @@ weather_14 = read.csv("2014_파주_기온.csv", stringsAsFactors = F)
 weather_15 = read.csv("2015_파주_기온.csv", stringsAsFactors = F)
 weather_16 = read.csv("2016_파주_기온.csv", stringsAsFactors = F)
 weather_17 = read.csv("2017_파주_기온.csv", stringsAsFactors = F)
+
+weather = read.csv("weather.csv", stringsAsFactors = F)
+weather = weather[2:7]
 
 ## 데이터 전처리
 # 1. 날씨 데이터 전처리
@@ -51,9 +55,9 @@ original_1$횟수[is.na(original_1$횟수)] = 0
 
 head(original_1)
 
+head(weather)
 
-
-
+merge()
 length(original_2$수용가번호)
 length(original_3$X좌표)
 length(original_4$X)
