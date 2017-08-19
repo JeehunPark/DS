@@ -4,8 +4,10 @@ library(stringr)
 library(sp)
 library(dplyr)
 library(rgdal)
+library(proj4)
 
 
+# 지역코드
 setwd("C:/Users/a/Desktop/용도지역")
 code = read.csv("code.csv")
 head(code)
@@ -24,6 +26,7 @@ df_use_care = left_join(df_use_care, code, by="sub")
 care = left_join(use_care_1, df_use_care, by="id")
 write.csv(care, "care.csv")
 head(care)
+
 
 # 농림지역
 setwd("C:/Users/a/Desktop/용도지역/국토계획-농림/")
@@ -106,14 +109,6 @@ ggplot()+
   labs(fill = "legend")
 
 
-
-over(coordinates(original_3[3:4]), care)
-
-plot(coordinates(original_3[3:4]))
-head(care)
-corr
-
-
 setwd("C:/Users/a/Desktop/용도지역/국토계획-관리/")
 care = read.csv("care.csv")
 
@@ -137,36 +132,78 @@ det = na.omit(det)
 
 original_3["A0"] = 1:length(original_3$houseCode)
 result = full_join(original_3, det, by="A0")
-result$A1 = as.character(result$A1)
-result["sub"] = regmatches(result$A1, regexpr("(UQA).{3}", result$A1))
-df_use_city = left_join(df_use_city, code, by="sub")
+result = result[1:8]
+result["sub"] = str_extract(result$A1, "(UQA).{3}")
 
-length(det$A0)
-length(result$houseCode)
-View(result)
-length(df_use_nature$A1)
-length(result$houseCode)
-length(original_3$houseCode)
-str(result)
-head(result)
-head(det)
-head(use_city)
-head(original_3)
-head(city)
-city[city$name ==NA,]
-result[result$A1==NA,]
-head(det)
+result = left_join(result, code, by="sub")
+
+#
+Spatial_point = SpatialPointsDataFrame(original_3[3:4], original_3[1], match.ID = "houseCode")
 head(Spatial_point)
-original_3[11521,]
-Spatial_point[11521,]
+
+det = over(Spatial_point, use_city)
+det = det[1:3]
+det = na.omit(det)
+
+original_3["A0"] = 1:length(original_3$houseCode)
+result = full_join(original_3, det, by="A0")
+result = result[1:8]
+result["sub"] = str_extract(result$A1, "(UQA).{3}")
+
+result = left_join(result, code, by="sub")
 
 ggplot()+
-  geom_polygon(aes(city$long, city$lat, group=city$group, fill = city$name))+
-  geom_point(aes(original_3[11521,]$xCor, original_3[11521,]$yCor), color = "red", size = 1)+
-  coord_cartesian(xlim = c(170000, 205000), ylim = c(465000, 505000))+
+  geom_polygon(aes(city$long, city$lat, group=city$group, fill = city$name), color="black")+
+  geom_point(aes(result$xCor, result$yCor, color = result$name), size = 0.1)+
+  coord_cartesian(xlim = c(170000, 180000), ylim = c(465000, 475000))+
   xlab("long")+
   ylab("lat")+
-  labs(fill = "legend")
+  labs(fill = "legend", color = "legend")
 
-plot(use_city)
 
+
+typeof(use_city)
+head(result)
+head(det)
+proj_Bessel = "+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs"
+proj_wgs = "+proj=tmerc +lat_0=38 +lon_0=127.0028902777778 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43"
+a = proj4::project(original_3[5:6], proj_Bessel)
+
+proj4::ptransform(data = original_3[5:6], dst.proj = "TM")
+
+str(use_city)
+use_city@data[2]
+
+z = use_city@polygons
+z[2]
+
+head(str(use_city))
+head(det)
+head(original_3)
+conVert
+
+sp::`.__T__over:sp`
+
+
+
+
+
+
+convertCoordSystem <- function(long, lat, from.crs, to.crs){
+  xy <- data.frame(long=long, lat=lat)
+  coordinates(xy) <- ~long+lat
+  
+  from.crs <- CRS(from.crs)
+  from.coordinates <- SpatialPoints(xy, proj4string=from.crs)
+  
+  to.crs <- CRS(to.crs)
+  changed <- as.data.frame(SpatialPoints(spTransform(from.coordinates, to.crs)))
+  names(changed) <- c("long", "lat")
+  
+  return(changed)
+}
+from.crs = "+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +units=m +no_defs"
+to.crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+a = convertCoordSystem(original_3$xCor, original_3$yCor, from.crs, to.crs)
+head(a)
+original_3$xCor
